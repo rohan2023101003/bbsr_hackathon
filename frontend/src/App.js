@@ -7,9 +7,14 @@ import ParticipantView from "./pages/ParticipantView";
 import ContestDetail from "./pages/ContestDetail";
 import EditContest from "./pages/EditContest"; 
 import SubmitArticle from "./pages/SubmitArticle";
+import { fetchUser } from "./api/user";
+import { fetchContest } from "./api/contest";
 
 const App = () => {
   const userRole = "coordinator"; 
+
+  console.log( fetchUser() );
+  console.log( fetchContest() );
 
   return (
     <Router>
