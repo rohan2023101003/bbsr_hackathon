@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime ,date 
 # Import the models from your models file
@@ -10,7 +10,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # Correct database URI with the absolute path
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/rohan/wiki_bbsr/wikicontest/wikicontest.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/jayprakash/temp/bbsr_hackathon/wikicontest.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize SQLAlchemy
@@ -25,6 +25,11 @@ def get_data():
 
 with app.app_context():
     db.create_all()
+
+
+@app.route("/", methods=["GET"])
+def index():
+    return redirect("http://localhost:3000/")
 
 # Route to create a new contest
 @app.route("/new-editathon", methods=["POST"])
@@ -115,7 +120,7 @@ def add_user():
 
 
 # Route to get all contests (optional for listing contests)
-@app.route("/contests", methods=["GET"])
+@app.route("/api/contests", methods=["GET"])
 def get_contests():
     # Create a session to interact with the database
     session = Session()
@@ -300,6 +305,15 @@ def get_contest(contest_id):
 #     except Exception as e:
 #         db.session.rollback()
 #         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/user", methods=["GET"])
+def get_users():
+    user_name = "ABC"
+    return jsonify({
+        "logged_in": user_name is not None,
+        "user": user_name
+    }), 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,27 +1,28 @@
 
-GET http://localhost:5000/contests HTTP/1.1
+# GET http://localhost:5000/contests HTTP/1.1
 # GET http://localhost:5000/contest/2 HTTP/1.1
 # GET http://localhost:5000/contest/2 HTTP/1.1
 # GET http://localhost:5000/user/rohank HTTP/1.1
-# POST http://localhost:5000/new-editathon HTTP/1.1
-# content-type: application/json
+POST http://localhost:5000/new-editathon HTTP/1.1
+content-type: application/json
 
-# {
-#     "name": "sample5",
-#     "description": "sample description",
-#     "code": "sample code",
-#     "start_date": "2021-09-01",
-#     "end_date": "2021-09-30",
-#     "created_by": "sample user",
-#     "project": "sample project",
-#     "judges": ["rohan", "rohank"],
-#     "rules" : {
-#         "rule1": "sample rule 1",
-#         "rule2": "sample rule 2"
-#     },
-#     "accept_points": 10,
-#     "reject_points": -1
-# }
+{
+    "name": "sample6",
+    "description": "sample description",
+    "code": "sample code",
+    "start_date": "2021-09-01",
+    "end_date": "2021-09-30",
+    "created_by": "sample user",
+    "project": "sample project",
+    "judges": ["rohan"],
+    "rules" : {
+        "rule1": "sample rule 1",
+        "rule2": "sample rule 2"
+    },
+    "accept_points": 10,
+    "reject_points": -1
+}
+
 
 # POST http://localhost:5000/user-details HTTP/1.1
 # content-type: application/json
