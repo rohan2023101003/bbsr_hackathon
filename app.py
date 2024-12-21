@@ -19,9 +19,9 @@ migrate = Migrate(app, db)
 
 CORS(app, origins="*", supports_credentials=True)
 
-@app.route('/api/data', methods=['GET'])
-def get_data():
-    return jsonify({"message": "Hello from Flask"})
+# @app.route('/api/data', methods=['GET'])
+# def get_data():
+#     return jsonify({"message": "Hello from Flask"})
 
 with app.app_context():
     db.create_all()
