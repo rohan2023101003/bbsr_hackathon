@@ -10,7 +10,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # Correct database URI with the absolute path
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/jayprakash/temp/bbsr_hackathon/wikicontest.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/rohan/wiki_bbsr/bbsr_hackathon/wikicontest.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize SQLAlchemy
@@ -32,7 +32,7 @@ def index():
     return redirect("http://localhost:3000/")
 
 # Route to create a new contest
-@app.route("/new-editathon", methods=["POST"])
+@app.route("/api/new-editathon", methods=["POST"])
 def create_contest():
     try:
         # Get JSON data from the request
@@ -64,7 +64,7 @@ def create_contest():
             description=data['description'],
             project=data['project'],
             code=data['code'],
-            start_date=start_date,
+            start_date=start_date,  
             end_date=end_date,
             created_on=datetime.today(),
             judges=judges,
@@ -87,6 +87,7 @@ def create_contest():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
 @app.route("/user-details", methods=["POST"])
 def add_user():
     try:
@@ -130,7 +131,7 @@ def get_contests():
 
     # Process the contests to extract necessary data
     contests_data = [
-        {"name": contest.name, "start_date": contest.start_date, "end_date": contest.end_date , "judges": [judge.username for judge in contest.judges]}
+        {"id":contest.id,"name": contest.name, "start_date": contest.start_date, "end_date": contest.end_date , "judges": [judge.username for judge in contest.judges]}
         for contest in contests
     ]
 
@@ -139,7 +140,7 @@ def get_contests():
 
     return jsonify(contests_data), 200
 #route fora user dashboard
-@app.route("/user/<string:username>", methods=["GET"])
+@app.route("/api/user/<string:username>", methods=["GET"])
 def get_user(username):
     try:
         # Fetch the user from the database by username
@@ -173,7 +174,7 @@ def get_user(username):
         return jsonify({"error": str(e)}), 500
 
 # Route to get a contest by its ID
-@app.route("/contest/<int:contest_id>/submit", methods=["POST"])
+@app.route("/api/contest/<int:contest_id>/submit", methods=["POST"])
 def submit_contest(contest_id):
     try:
         # Get JSON data from the request
@@ -211,14 +212,14 @@ def submit_contest(contest_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/contest/<int:contest_id>", methods=["GET"])
+@app.route("/api/contest/<int:contest_id>", methods=["GET"])
 def get_contest(contest_id):
     try:
         # Fetch the contest from the database by ID
         session = Session()
         contest = session.query(Contest).get(contest_id)
                 # Validate judges
-  
+        
         # Prepare contest details
         contest_data = {
             "id": contest.id,
@@ -236,6 +237,7 @@ def get_contest(contest_id):
     
                 } for judge in contest.judges
             ],
+            # "rules": contest.rules,
              
         }
         # Fetch the number of submissions by each user in the contest (grouped by user)
@@ -269,43 +271,82 @@ def get_contest(contest_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Route to update a contest by its ID
+@app.route('/update-contest/<int:contest_id>', methods=['PUT'])
+def update_contest(contest_id):
+    try:
+        # Fetch the contest to update
+        contest = db.session.query(Contest).filter_by(id=contest_id).first()
+        if not contest:
+            return jsonify({"error": "Contest not found"}), 404
 
-# @app.route("/contest/<int:contest_id>", methods=["PUT"])
-# def update_contest(contest_id):
-#     try:
-#         # Fetch the contest from the database by ID
-#         contest = Contest.query.get_or_404(contest_id)
+        # Get data from the request
+        data = request.json
 
-#         # Get JSON data from the request
-#         data = request.get_json()
+        # Exclude `name` from updates
+        if 'description' in data:
+            contest.description = data['description']
+        if 'project' in data:
+            contest.project = data['project']
+        if 'code' in data:
+            contest.code = data['code']
+        if 'start_date' in data:
+            contest.start_date = data['start_date']
+        if 'end_date' in data:
+            contest.end_date = data['end_date']
+        if 'is_active' in data:
+            contest.is_active = data['is_active']
+        if 'accept_points' in data:
+            contest.accept_points = data['accept_points']
+        if 'reject_points' in data:
+            contest.reject_points = data['reject_points']
+        if 'created_by' in data:
+            contest.created_by = data['created_by']
 
-#         # Update the contest fields if provided in the request
-#         if data.get('name'):
-#             contest.name = data['name']
-#         if data.get('description'):
-#             contest.description = data['description']
-#         if data.get('project'):
-#             contest.project = data['project']
-#         if data.get('code'):
-#             contest.code = data['code']
-#         if data.get('start_date'):
-#             contest.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-#         if data.get('end_date'):
-#             contest.end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
-#         if data.get('is_active'):
-#             contest.is_active = data['is_active']
+        # Handle `rules`: append to existing JSON
+        if 'rules' in data:
+            if contest.rules is None:
+                contest.rules = data['rules']
+            else:
+                # Merge or append keys/values
+                for key, value in data['rules'].items():
+                    if key in contest.rules and isinstance(contest.rules[key], list):
+                        contest.rules[key].extend(value)
+                    else:
+                        contest.rules[key] = value
 
-#         # Commit the changes to the database
-#         db.session.commit()
+        # Handle `judges`: append new judges
+        if 'judges' in data:
+            existing_judges = {judge.username for judge in contest.judges}  # Assuming `username` is a field in User
+            new_judges = [judge for judge in data['judges'] if judge not in existing_judges]
+            # Query the User objects for new judges
+            judge_objects = db.session.query(User).filter(User.username.in_(new_judges)).all()
+            contest.judges.extend(judge_objects)
 
-#         # Return a success response
-#         return jsonify({"message": "Contest updated successfully"}), 200
+        # Commit the changes to the database
+        db.session.commit()
 
-#     except Exception as e:
-#         db.session.rollback()
-#         return jsonify({"error": str(e)}), 500
+        return jsonify({"message": "Contest updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/delete-contest/<int:contest_id>', methods=['DELETE'])
+def delete_contest(contest_id):
+    try:
+        # Fetch the contest to delete
+        contest = db.session.query(Contest).filter_by(id=contest_id).first()
+        if not contest:
+            return jsonify({"error": "Contest not found"}), 404
 
+        # Delete the contest
+        db.session.delete(contest)
+        db.session.commit()
+
+        return jsonify({"message": "Contest deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/api/user", methods=["GET"])
 def get_users():
     user_name = "ABC"

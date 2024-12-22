@@ -1,23 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Typography, Container, Grid, Box } from "@mui/material";
 import Header from "../components/Header";
 import SearchFilters from "../components/SearchFilters";
 import ContestList from "../components/ContestList";
 import CreateButton from "../components/CreateButton";
 import { useNavigate } from "react-router-dom";
+import { fetchContest } from "../api/contest"; // import the fetchContest function
 
 const Dashboard = () => {
-  const [contests, setContests] = useState([
-    { id: 1, name: "Wikipedia Asian Month 2024", dateRange: "Nov 2024" },
-    { id: 2, name: "Women in Red Translation Contest", dateRange: "Jul–Sep 2024" },
-    { id: 3, name: "Feminism and Folklore 2024", dateRange: "Apr–May 2024" },
-  ]);
-
+  const [contests, setContests] = useState([]); // Initialize contests as an empty array
   const [searchQuery, setSearchQuery] = useState("");
 
   const userRole = "participant";
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadContests = async () => {
+      try {
+        const data = await fetchContest(); // Fetch the contests from the backend
+        // Map the response to the required format
+        const formattedContests = data.map((contest) => ({
+          id: contest.id,
+          name: contest.name,
+          dateRange: `${new Date(contest.start_date).toLocaleDateString()} – ${new Date(contest.end_date).toLocaleDateString()}`,
+        }));
+        setContests(formattedContests); // Set the contests in state
+      } catch (error) {
+        console.error("Failed to fetch contests:", error);
+      }
+    };
+
+    loadContests();
+  }, []); // Empty dependency array to run only once when the component mounts
 
   const handleSearch = (query) => {
     setSearchQuery(query);
