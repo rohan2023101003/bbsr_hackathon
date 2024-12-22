@@ -5,20 +5,21 @@ import Header from "../components/Header";
 import MarksSettings from "./MarksSettings";
 import RuleSettings from "./RuleSettings";
 import JurySetting from "./JurySetting";
+import { post } from "../api"; // Import the post function from the API file
 
 const NewEditathon = () => {
   const [activeTab, setActiveTab] = useState(0);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",  // Change 'title' to 'name'
     code: "",
     project: "",
     description: "",
-    startDate: "",
-    endDate: "",
-    consensualVote: false,
-    hiddenMarks: false,
+    start_date: "",
+    end_date: "",
+    created_by: "admin", // Assuming the user is an admin
   });
+  
 
   const tabs = ["Info", "Rules", "Marks", "Jury"];
 
@@ -43,12 +44,12 @@ const NewEditathon = () => {
       case 0:
         return (
           <Box sx={styles.formContainer}>
-            <TextField
-              label="Title"
+              <TextField
+              label="Name" // Update label to reflect the 'name' field
               variant="outlined"
               fullWidth
-              name="title"
-              value={formData.title}
+              name="name"  // Use 'name' instead of 'title'
+              value={formData.name}  // Bind to formData.name instead of formData.title
               onChange={handleInputChange}
               sx={styles.input}
             />
@@ -82,6 +83,15 @@ const NewEditathon = () => {
               sx={styles.input}
             />
             <TextField
+              label="created_by"
+              variant="outlined"
+              fullWidth
+              name="created_by"
+              value={formData.created_by}
+              onChange={handleInputChange}
+              sx={styles.input}
+            />
+            <TextField
               label="Description"
               variant="outlined"
               fullWidth
@@ -97,8 +107,8 @@ const NewEditathon = () => {
               variant="outlined"
               type="datetime-local"
               fullWidth
-              name="startDate"
-              value={formData.startDate}
+              name="start_date"
+              value={formData.start_date}
               onChange={handleInputChange}
               sx={styles.input}
               InputLabelProps={{
@@ -110,8 +120,8 @@ const NewEditathon = () => {
               variant="outlined"
               type="datetime-local"
               fullWidth
-              name="endDate"
-              value={formData.endDate}
+              name="end_date"
+              value={formData.end_date}
               onChange={handleInputChange}
               sx={styles.input}
               InputLabelProps={{
@@ -139,23 +149,56 @@ const NewEditathon = () => {
     }
   };
 
-  const handleSaveClick = () => {
-    const { title, code, project, startDate, endDate } = formData;
-    if (!title || !code || !project || !startDate || !endDate) {
-      return;
-    }
-    localStorage.setItem("editathonData", JSON.stringify(formData));
-    alert("Data Saved Successfully!");
+  
+const handleSaveClick = async () => {
+  const { name, code, project, description, start_date, end_date, created_by } = formData;
+
+  if (!name || !code || !project || !start_date || !end_date) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  // Extract only the date part from start_date and end_date
+  const formattedStartDate = start_date.split("T")[0]; // Extract 'YYYY-MM-DD'
+  const formattedEndDate = end_date.split("T")[0];     // Extract 'YYYY-MM-DD'
+
+  const dataToSend = {
+    name,
+    code,
+    project,
+    description,
+    start_date: formattedStartDate,
+    end_date: formattedEndDate,
+    created_by,
   };
 
-  const handleNextButtonClick = () => {
-    if (activeTab === tabs.length - 1) {
-      navigate("/jury-review");
+  try {
+    const response = await post('/new-editathon', dataToSend);
+
+    if (response.status === 200 ) {
+      // alert("Data Saved Successfully!");
+      // Navigate to the contest page with the new ID
+      navigate(`/contest/${response.contest_id}`);
     } else {
-      const nextTab = Math.min(activeTab + 1, tabs.length - 1);
-      setActiveTab(nextTab);
+      // alert("Failed to save the data.");
+      navigate(`/contest/${response.contest_id}`);
+    }
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("There was an error while saving the data.");
+  }
+};
+  
+  
+
+  const handleNextButtonClick = () => {
+    if (activeTab < tabs.length - 1) {
+      setActiveTab((prev) => prev + 1);
+    } else {
+      navigate("/");
     }
   };
+  
 
   return (
     <Box sx={styles.pageContainer}>

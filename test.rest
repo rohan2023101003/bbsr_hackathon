@@ -1,26 +1,19 @@
 
 # GET http://localhost:5000/api/contests HTTP/1.1
 # GET http://localhost:5000/api/contest/4 HTTP/1.1
-GET http://localhost:5000/api/contest/2 HTTP/1.1
+# GET http://localhost:5000/api/contest/2 HTTP/1.1
 # GET http://localhost:5000/user/rohank HTTP/1.1
 # POST http://localhost:5000/api/new-editathon HTTP/1.1
 # content-type: application/json
 
 # {
-#     "name": "sample3hbuv",
+#     "name": "new contest",
 #     "description": "sample description",
 #     "code": "sample code",
 #     "start_date": "2021-09-01",
 #     "end_date": "2021-09-30",
 #     "created_by": "sample user",
-#     "project": "sample project",
-#     "judges": ["rohan"],
-#     "rules" : {
-#         "rule1": "sample rule 1",
-#         "rule2": "sample rule 2"
-#     },
-#     "accept_points": 10,
-#     "reject_points": -1
+#     "project": "sample project"
 # }
 
 
@@ -28,8 +21,8 @@ GET http://localhost:5000/api/contest/2 HTTP/1.1
 # content-type: application/json
 
 # {
-#     "username": "rohan_new",
-#     "email": "rohan_new.email"
+#     "username": "user5",
+#     "email": "user5.email"
 # }
 
 # PUT http://localhost:5000/update-contest/1 HTTP/1.1
@@ -42,11 +35,11 @@ GET http://localhost:5000/api/contest/2 HTTP/1.1
 
 # DELETE http://localhost:5000/delete-contest/4 HTTP/1.1
 # 
-# POST http://localhost:5000/api/contest/2/submit HTTP/1.1
+# POST http://localhost:5000/api/contest/4/submit HTTP/1.1
 # content-type: application/json
 
 # {
-#     "user_username": "rohan_new",
+#     "user_username": "user1",
 #     "content" : "sample new content",
 #     "title" : "latest"
 # }
