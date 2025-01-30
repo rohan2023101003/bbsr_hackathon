@@ -1,9 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { TextField, MenuItem, Select, InputLabel, FormControl, Grid } from "@mui/material";
 
-const SearchFilters = ({ onSearch }) => {
-  const handleInputChange = (e) => {
-    onSearch(e.target.value);
+const SearchFilters = ({ onFiltersChange }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [projectType, setProjectType] = useState("all");
+  const [language, setLanguage] = useState("all");
+
+  const handleSearchQueryChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    onFiltersChange({ searchQuery: query, projectType, language });
+  };
+
+  const handleProjectTypeChange = (e) => {
+    const type = e.target.value;
+    setProjectType(type);
+    onFiltersChange({ searchQuery, projectType: type, language });
+  };
+
+  const handleLanguageChange = (e) => {
+    const lang = e.target.value;
+    setLanguage(lang);
+    onFiltersChange({ searchQuery, projectType, language: lang });
   };
 
   return (
@@ -13,7 +31,8 @@ const SearchFilters = ({ onSearch }) => {
           label="Search contests..."
           variant="outlined"
           fullWidth
-          onChange={handleInputChange}
+          value={searchQuery}
+          onChange={handleSearchQueryChange}
           sx={styles.input}
         />
       </Grid>
@@ -21,7 +40,7 @@ const SearchFilters = ({ onSearch }) => {
       <Grid item xs={12} md={4}>
         <FormControl fullWidth>
           <InputLabel>Project Type</InputLabel>
-          <Select defaultValue="all" label="Project Type" sx={styles.select}>
+          <Select value={projectType} onChange={handleProjectTypeChange} label="Project Type" sx={styles.select}>
             <MenuItem value="all">All Projects</MenuItem>
             <MenuItem value="wiki">Wikipedia</MenuItem>
             <MenuItem value="wikimedia">Wikimedia</MenuItem>
@@ -32,7 +51,8 @@ const SearchFilters = ({ onSearch }) => {
       <Grid item xs={12} md={4}>
         <FormControl fullWidth>
           <InputLabel>Language</InputLabel>
-          <Select defaultValue="en" label="Language" sx={styles.select}>
+          <Select value={language} onChange={handleLanguageChange} label="Language" sx={styles.select}>
+            <MenuItem value="all">All Languages</MenuItem>
             <MenuItem value="en">English</MenuItem>
             <MenuItem value="fr">French</MenuItem>
             <MenuItem value="es">Spanish</MenuItem>

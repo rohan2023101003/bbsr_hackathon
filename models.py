@@ -72,10 +72,11 @@ class Submission(Base):
     __tablename__ = "submission"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    title: str = Column(String(200),nullable=False)
-    content: str = Column(String, nullable=False)
-    submitted_on: datetime = Column(DateTime, default=datetime.utcnow)
-    score: int = Column(SmallInteger, default=0)
+    title = Column(String(200), nullable=False)
+    content = Column(String, nullable=False)
+    submitted_on = Column(DateTime, default=datetime.utcnow)
+    score = Column(Integer, default=0)  # Marks for the article
+    feedback = Column(String, nullable=True)  # Feedback/comments from the jury
 
     contest_id = Column(Integer, ForeignKey("contest.id"), nullable=False)
     user_username = Column(String(190), ForeignKey("user.username"), nullable=False)

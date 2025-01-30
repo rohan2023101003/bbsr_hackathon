@@ -11,7 +11,7 @@ import { fetchUser } from "./api/user";
 import { fetchContest } from "./api/contest";
 
 const App = () => {
-  const userRole = "coordinator"; 
+  const userRole = "jury"; 
 
   console.log( fetchUser() );
   console.log( fetchContest() );
@@ -19,7 +19,7 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard  userRole={userRole}/>} />
         <Route path="/new-editathon" element={<NewEditathon />} />
         <Route path="/jury-review" element={<JuryReview />} />
         <Route path="/participant" element={<ParticipantView />} />

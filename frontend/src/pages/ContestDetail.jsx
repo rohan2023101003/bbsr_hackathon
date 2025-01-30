@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, Typography, Paper, List, ListItem, ListItemText } from "@mui/material";
-import { styled } from "@mui/system";
 import { fetchContestById } from "../api/contest"; // Assuming this is the API function to fetch contest details
 
 const ContestDetail = ({ userRole }) => {
@@ -27,6 +26,8 @@ const ContestDetail = ({ userRole }) => {
           numParticipants: data.submissions.length,
           startDate: data.start_date,
           endDate: data.end_date,
+          projectType: data.project || "Not specified", // Assuming `project` field exists
+          language: data.language || "Not specified", // Assuming `language` field exists
         };
         
         setContestDetails(formattedContest); // Update state with the fetched data
@@ -75,6 +76,11 @@ const ContestDetail = ({ userRole }) => {
             </ListItem>
           ))}
         </List>
+        <Typography variant="h5" gutterBottom>Project Type:</Typography>
+        <Typography variant="body1">{contestDetails.projectType}</Typography>
+
+        <Typography variant="h5" gutterBottom>Language:</Typography>
+        <Typography variant="body1">{contestDetails.language}</Typography>
 
         <Typography variant="h5" gutterBottom>Number of Articles Submitted:</Typography>
         <Typography variant="body1">{contestDetails.numArticles}</Typography>

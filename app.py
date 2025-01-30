@@ -10,7 +10,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # Correct database URI with the absolute path
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/rohan/wiki_bbsr/bbsr_hackathon/wikicontest.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:\\Users\\Dell\\OneDrive\\Desktop\\BBSR HACKTHON\\bbsr_hackathon\\wikicontest.db"
+print(app.config["SQLALCHEMY_DATABASE_URI"])
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize SQLAlchemy
@@ -354,6 +355,54 @@ def get_users():
         "logged_in": user_name is not None,
         "user": user_name
     }), 200
+
+@app.route("/api/contest/<int:contest_id>/articles", methods=["GET"])
+def get_submitted_articles(contest_id):
+    try:
+        # Fetch all submissions for the contest
+        submissions = db.session.query(Submission).filter_by(contest_id=contest_id).all()
+
+        articles_data = [
+            {
+                "id": submission.id,
+                "title": submission.title,
+                "content": submission.content,
+                "submitted_on": submission.submitted_on,
+                "user_username": submission.user_username,
+                "marks": submission.score,
+                "feedback": submission.feedback,
+            }
+            for submission in submissions
+        ]
+
+        return jsonify(articles_data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/contest/<int:contest_id>/review", methods=["POST"])
+def review_article(contest_id):
+    try:
+        data = request.get_json()
+        submission_id = data["submission_id"]
+        marks = data["marks"]
+        feedback = data.get("feedback", "")
+
+        # Fetch the submission by contest ID and submission ID
+        submission = db.session.query(Submission).filter_by(id=submission_id, contest_id=contest_id).first()
+
+        if not submission:
+            return jsonify({"error": "Submission not found."}), 404
+
+        # Update the submission with marks and feedback
+        submission.score = marks
+        submission.feedback = feedback
+        db.session.commit()
+
+        return jsonify({"message": "Article reviewed successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+   
+
 
 
 if __name__ == "__main__":

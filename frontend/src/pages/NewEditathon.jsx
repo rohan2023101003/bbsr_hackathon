@@ -18,18 +18,21 @@ const NewEditathon = () => {
     start_date: "",
     end_date: "",
     created_by: "admin", // Assuming the user is an admin
+    rules: {},
+    marks: {},
+    jury: [],
   });
   
 
   const tabs = ["Info", "Rules", "Marks", "Jury"];
 
-  const handleOptionalChange = (event) => {
-    const { name, checked } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: checked,
-    }));
-  };
+  // const handleOptionalChange = (event) => {
+  //   const { name, checked } = event.target;
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     [name]: checked,
+  //   }));
+  // };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -131,11 +134,11 @@ const NewEditathon = () => {
           </Box>
         );
       case 1:
-        return <RuleSettings />;
+        return <RuleSettings  formData={formData} setFormData={setFormData}/>;
       case 2:
-        return <MarksSettings />;
+        return <MarksSettings  formData={formData} setFormData={setFormData}/>;
       case 3:
-        return <JurySetting />;
+        return <JurySetting formData={formData} setFormData={setFormData} />;
       default:
         return null;
     }
@@ -191,13 +194,13 @@ const handleSaveClick = async () => {
   
   
 
-  const handleNextButtonClick = () => {
-    if (activeTab < tabs.length - 1) {
-      setActiveTab((prev) => prev + 1);
-    } else {
-      navigate("/");
-    }
-  };
+const handleNextButtonClick = () => {
+  if (activeTab < tabs.length - 1) {
+    setActiveTab((prev) => prev + 1);
+  } else {
+    handleSaveClick(); // Save when at last tab
+  }
+};
   
 
   return (
@@ -223,11 +226,11 @@ const handleSaveClick = async () => {
         <Button variant="outlined" onClick={handleBackButtonClick} sx={styles.navButton}>
           Back
         </Button>
-        <Button variant="contained" color="primary" onClick={handleSaveClick} sx={styles.navButton}>
+        {/* <Button variant="contained" color="primary" onClick={handleSaveClick} sx={styles.navButton}>
           Save
-        </Button>
+        </Button> */}
         <Button variant="contained" color="secondary" onClick={handleNextButtonClick} sx={styles.navButton}>
-          Next
+          {activeTab === tabs.length - 1 ? "Save" : "Next"}
         </Button>
       </Box>
     </Box>

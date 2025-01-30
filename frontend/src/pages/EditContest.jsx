@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { TextField, Button, Box, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { fetchContestById } from "../api/contest";
 
 const EditContest = () => {
   const { contestId } = useParams();
@@ -17,11 +18,45 @@ const EditContest = () => {
     jury: [],
   });
 
+  // useEffect(() => {
+  //   const savedContestData = JSON.parse(localStorage.getItem("contestData")) || {};
+  //   if (savedContestData.id === contestId) {
+  //     setFormData(savedContestData);
+  //   }
+  // }, [contestId]);
+
+  // const handleInputChange = (event) => {
+  //   const { name, value } = event.target;
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     [name]: value,
+  //   }));
+  // };
   useEffect(() => {
-    const savedContestData = JSON.parse(localStorage.getItem("contestData")) || {};
-    if (savedContestData.id === contestId) {
-      setFormData(savedContestData);
-    }
+    const loadContestDetails = async () => {
+      try {
+        // Fetch contest data from API based on contestId
+        const contestData = await fetchContestById(contestId);
+        console.log(contestData); 
+        
+        // Populate the form fields with the existing contest data
+        setFormData({
+          title: contestData.name || "",
+        code: contestData.code || "",
+        project: contestData.project || "", // Assuming the project field exists
+        description: contestData.description || "",
+        startDate: contestData.start_date || "",
+        endDate: contestData.end_date || "",
+        created_by: contestData.created_by || "", // If you want this editable
+        jury: contestData.judges?.map((judge) => judge.username) || [], // If the judges are an array of objects, extract the username
+      });
+      } catch (error) {
+        console.error("Error fetching contest details:", error);
+        alert("Failed to load contest data.");
+      }
+    };
+
+    loadContestDetails(); // Fetch the contest details when the component mounts
   }, [contestId]);
 
   const handleInputChange = (event) => {
@@ -57,7 +92,7 @@ const EditContest = () => {
   };
 
   const handleSaveClick = () => {
-    localStorage.setItem("contestData", JSON.stringify(formData));
+    // localStorage.setItem("contestData", JSON.stringify(formData));
     alert("Contest updated successfully!");
     navigate("/"); 
   };
