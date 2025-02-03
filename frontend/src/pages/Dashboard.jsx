@@ -68,9 +68,6 @@ const Dashboard = ({userRole}) => {
             <CreateButton onClick={handleCreateContest} />
           </Grid>
           <Grid item xs={12}>
-            <Typography variant="h4" gutterBottom>
-              Upcoming Contests
-            </Typography>
             <ContestList
               contests={contests}
               searchQuery={filters.searchQuery}

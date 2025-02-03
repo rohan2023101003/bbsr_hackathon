@@ -106,6 +106,14 @@ const ContestDetail = ({ userRole }) => {
             ? "Review"
             : "Submit Article"}
         </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={() => navigate("/")}
+          sx={styles.homeButton}
+        >
+          Go to Homepage
+        </Button>
       </Paper>
     )
   );
@@ -123,6 +131,12 @@ const styles = {
   },
   button: {
     marginTop: "1rem",
+    padding: "0.5rem 2rem",
+    fontSize: "1rem",
+  },
+  homeButton: {
+    marginTop: "1rem",
+    marginLeft: "1rem",
     padding: "0.5rem 2rem",
     fontSize: "1rem",
   },

@@ -94,7 +94,7 @@ const EditContest = () => {
   const handleSaveClick = () => {
     // localStorage.setItem("contestData", JSON.stringify(formData));
     alert("Contest updated successfully!");
-    navigate("/"); 
+    navigate(`/contest/${contestId}`); 
   };
 
   return (
