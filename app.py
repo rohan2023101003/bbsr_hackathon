@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime ,date 
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_bcrypt import Bcrypt
 # Import the models from your models file
 from flask_migrate import Migrate
-from models import Contest, User, ContestMaintainer, ContestParticipant ,Submission , Session , association_table
+from models import Contest, User, ContestMaintainer, ContestParticipant ,Submission , Session , association_table, db
 from flask_cors import CORS
 
 # Initialize Flask app
@@ -13,10 +15,13 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:\\Users\\Dell\\OneDrive\\Desktop\\BBSR HACKTHON\\bbsr_hackathon\\wikicontest.db"
 print(app.config["SQLALCHEMY_DATABASE_URI"])
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_SECRET_KEY"] = "qwertyuiop1234567890"
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 
 CORS(app, origins="*", supports_credentials=True)
 
@@ -31,6 +36,44 @@ with app.app_context():
 @app.route("/", methods=["GET"])
 def index():
     return redirect("http://localhost:3000/")
+
+# User Registration
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    if not data.get("username") or not data.get("email") or not data.get("password") or not data.get("role"):
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    new_user = User(
+        username=data["username"],
+        email=data["email"],
+        password=hashed_password,
+        role=data["role"]  # "participant", "jury", or "admin"
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"message": "User registered successfully"}), 201
+
+# User Login
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(username=data["username"]).first()
+    if user and bcrypt.check_password_hash(user.password, data["password"]):
+        access_token = create_access_token(identity={"username": user.username, "role": user.role}, expires_delta=timedelta(hours=2))
+        return jsonify({"access_token": access_token}), 200
+    return jsonify({"error": "Invalid credentials"}), 401
+
+# Protected Route Example (Only for Jury & Admin)
+@app.route("/api/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    if current_user["role"] not in ["jury", "admin"]:
+        return jsonify({"error": "Access denied"}), 403
+    return jsonify({"message": "Welcome Jury/Admin!", "user": current_user})
+
 
 # Route to create a new contest
 @app.route("/api/new-editathon", methods=["POST"])
@@ -272,7 +315,7 @@ def get_contest(contest_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/update-contest/<int:contest_id>', methods=['PUT'])
+@app.route('/api/update-contest/<int:contest_id>', methods=['PUT'])
 def update_contest(contest_id):
     try:
         # Fetch the contest to update
@@ -355,7 +398,7 @@ def get_users():
         "logged_in": user_name is not None,
         "user": user_name
     }), 200
-
+"/api/contest/<int:contest_id>/submissions"
 @app.route("/api/contest/<int:contest_id>/articles", methods=["GET"])
 def get_submitted_articles(contest_id):
     try:
@@ -401,6 +444,120 @@ def review_article(contest_id):
         return jsonify({"message": "Article reviewed successfully."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/api/contest/<int:contest_id>/delete-submission/<int:submission_id>", methods=["DELETE"])
+@jwt_required()
+def delete_submission(contest_id, submission_id):
+    try:
+        current_user = get_jwt_identity()
+        if current_user["role"] not in ["jury", "admin"]:
+            return jsonify({"error": "Access denied"}), 403
+
+        submission = Submission.query.filter_by(id=submission_id, contest_id=contest_id).first()
+        if not submission:
+            return jsonify({"error": "Submission not found"}), 404
+
+        db.session.delete(submission)
+        db.session.commit()
+
+        return jsonify({"message": "Submission deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route("/api/user/<string:username>/submissions", methods=["GET"])
+@jwt_required()
+def get_user_submissions(username):
+    try:
+        submissions = Submission.query.filter_by(user_username=username).all()
+        submissions_data = [
+            {
+                "title": sub.title,
+                "content": sub.content,
+                "submitted_on": sub.submitted_on,
+                "contest_id": sub.contest_id,
+                "score": sub.score,
+                "feedback": sub.feedback
+            }
+            for sub in submissions
+        ]
+        return jsonify(submissions_data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/contests/search", methods=["GET"])
+def search_contests():
+    try:
+        name_query = request.args.get("name", "").lower()
+        project_type = request.args.get("project", "").lower()
+        language = request.args.get("language", "").lower()
+
+        query = Contest.query
+
+        if name_query:
+            query = query.filter(Contest.name.ilike(f"%{name_query}%"))
+        if project_type:
+            query = query.filter(Contest.project.ilike(f"%{project_type}%"))
+        if language:
+            query = query.filter(Contest.language.ilike(f"%{language}%"))
+
+        contests = query.all()
+
+        contests_data = [
+            {
+                "id": contest.id,
+                "name": contest.name,
+                "project": contest.project,
+                "start_date": contest.start_date.isoformat(),
+                "end_date": contest.end_date.isoformat(),
+                "language": getattr(contest, "language", "Unknown"),
+            }
+            for contest in contests
+        ]
+
+        return jsonify(contests_data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/user-dashboard", methods=["GET"])
+@jwt_required()
+def user_dashboard():
+    try:
+        current_user = get_jwt_identity()
+        username = current_user["username"]
+
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        participated_contests = [
+            {
+                "id": cp.contest.id,
+                "name": cp.contest.name,
+                "start_date": cp.contest.start_date.isoformat(),
+                "end_date": cp.contest.end_date.isoformat(),
+            }
+            for cp in user.submissions
+        ]
+
+        judged_contests = [
+            {
+                "id": cj.id,
+                "name": cj.name,
+                "start_date": cj.start_date.isoformat(),
+                "end_date": cj.end_date.isoformat(),
+            }
+            for cj in user.judged_contests
+        ]
+
+        return jsonify(
+            {
+                "username": user.username,
+                "role": user.role,
+                "participated_contests": participated_contests,
+                "judged_contests": judged_contests if user.role == "jury" else [],
+            }
+        ), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
    
 
 

@@ -9,6 +9,7 @@ import EditContest from "./pages/EditContest";
 import SubmitArticle from "./pages/SubmitArticle";
 import { fetchUser } from "./api/user";
 import { fetchContest } from "./api/contest";
+import ParticipantDashboard from "./pages/ParticipantDashboard";
 
 const App = () => {
   const userRole = "coordinator"; 
@@ -24,6 +25,8 @@ const App = () => {
         <Route path="/jury-review/:contestId" element={<JuryReview />} />
         <Route path="/participant" element={<ParticipantView />} />
         <Route path="/submit-article/:contestId" element={<SubmitArticle />} />
+        <Route path="/participant-dashboard/:username" element={<ParticipantDashboard />} />
+
         
         
         <Route

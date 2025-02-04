@@ -15,6 +15,9 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+
 
 
 # Configure database connection
@@ -76,7 +79,7 @@ class Submission(Base):
     content = Column(String, nullable=False)
     submitted_on = Column(DateTime, default=datetime.utcnow)
     score = Column(Integer, default=0)  # Marks for the article
-    feedback = Column(String, nullable=True)  # Feedback/comments from the jury
+    # feedback = Column(String, nullable=True)  # Feedback/comments from the jury
 
     contest_id = Column(Integer, ForeignKey("contest.id"), nullable=False)
     user_username = Column(String(190), ForeignKey("user.username"), nullable=False)
