@@ -84,30 +84,49 @@ def create_contest():
         data = request.get_json()
 
         # Validate the required fields
-        if not data.get('name') or not data.get('description') or not data.get('start_date') or not data.get('end_date') or not data.get('created_by'):
-            return jsonify({"error": "Missing required fields"}), 400
+        required_fields = ["name", "code", "project", "start_date", "end_date", "created_by"]
+        for field in required_fields:
+            if field not in data or not data[field].strip():
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+            
+            
 
         # Parse dates from the request
-        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-        end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+            start_date = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M')
+            end_date = datetime.strptime(data['end_date'], '%Y-%m-%dT%H:%M')
         # Fetch judge objects based on provided usernames
+        print(f"Project: {data.get('project')}")
+        print(f"Code: {data.get('code')}")
+        print(f"Rules: {data.get('rules')}")
+        print(f"Jury: {data.get('jury')}")
+
+        rules = data.get('rules', {})
         judges = []
-        if 'judges' in data:
-            for judge_username in data['judges']:
+        if 'jury' in data:
+            for judge_username in data['jury']:  # Ensure 'jury' is being used correctly
                 judge = db.session.query(User).filter_by(username=judge_username).first()
+                
                 if judge:
+                    # If the judge exists, add them
                     judges.append(judge)
                 else:
-                    return jsonify({"error": f"Judge '{judge_username}' not found."}), 404
-        rules = data.get('rules', {})
+                    # If the judge doesn't exist, create them automatically
+                    print(f"Judge '{judge_username}' not found. Creating new judge...")
+
+                    # You may want to assign a default email or other attributes to the new judge
+                    new_judge = User(username=judge_username, email=f"{judge_username}@example.com")
+                    db.session.add(new_judge)
+                    db.session.commit()  # Commit immediately to save the new judge
+                    judges.append(new_judge) 
+        
         accept_points = data.get('accept_points', 1)
         reject_points = data.get('reject_points', 0)
         # Create new contest object
         new_contest = Contest(
             name=data['name'],
-            description=data['description'],
-            project=data['project'],
-            code=data['code'],
+            description=data.get('description', ""), 
+            project=data.get('project',""),	
+            code=data.get('code',""),	
             start_date=start_date,  
             end_date=end_date,
             created_on=datetime.today(),
@@ -125,7 +144,8 @@ def create_contest():
         # Return a success response
         return jsonify({
             "message": "Contest created successfully",
-            "contest_id": new_contest.id
+            "contest_id": new_contest.id,
+            "jury": [judge.username for judge in new_contest.judges], 
         }), 201
 
     except Exception as e:

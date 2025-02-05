@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Button, FormControl, InputLabel, Select, MenuItem, TextField, FormControlLabel, Checkbox, Typography, Paper } from "@mui/material";
 
-const RuleSettings = () => {
+const RuleSettings = ({formData,setFormData}) => {
   const [selectedRule, setSelectedRule] = useState(""); 
   const [isOptional, setIsOptional] = useState(false);
   const [user, setUser] = useState("21GauriGuptaa");
@@ -12,6 +12,14 @@ const RuleSettings = () => {
 
   const handleRuleChange = (event) => {
     setSelectedRule(event.target.value); 
+    setFormData({
+      ...formData,
+      rules: {
+        ...formData.rules,
+        ruleType: event.target.value, // Storing the selected rule
+        optional: isOptional,
+      },
+    });
   };
 
   return (

@@ -26,8 +26,8 @@ const ContestDetail = ({ userRole }) => {
           numParticipants: data.submissions.length,
           startDate: data.start_date,
           endDate: data.end_date,
-          projectType: data.project || "Not specified", // Assuming `project` field exists
-          language: data.language || "Not specified", // Assuming `language` field exists
+          project: data.project || "Not specified", // Assuming `project` field exists
+          code: data.code || "Not specified", // Assuming `language` field exists
         };
         
         setContestDetails(formattedContest); // Update state with the fetched data
@@ -77,10 +77,10 @@ const ContestDetail = ({ userRole }) => {
           ))}
         </List>
         <Typography variant="h5" gutterBottom>Project Type:</Typography>
-        <Typography variant="body1">{contestDetails.projectType}</Typography>
+        <Typography variant="body1">{contestDetails.project}</Typography>
 
         <Typography variant="h5" gutterBottom>Language:</Typography>
-        <Typography variant="body1">{contestDetails.language}</Typography>
+        <Typography variant="body1">{contestDetails.code}</Typography>
 
         <Typography variant="h5" gutterBottom>Number of Articles Submitted:</Typography>
         <Typography variant="body1">{contestDetails.numArticles}</Typography>

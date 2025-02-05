@@ -19,7 +19,8 @@ const NewEditathon = () => {
     end_date: "",
     created_by: "admin", // Assuming the user is an admin
     rules: {},
-    marks: {},
+    accept_points: 1,
+    reject_points: 0,
     jury: [],
   });
   
@@ -154,6 +155,7 @@ const NewEditathon = () => {
 
   
 const handleSaveClick = async () => {
+  console.log("Form Data before sending:", formData); 
   const { name, code, project, description, start_date, end_date, created_by } = formData;
 
   if (!name || !code || !project || !start_date || !end_date) {
@@ -163,28 +165,38 @@ const handleSaveClick = async () => {
 
   // Extract only the date part from start_date and end_date
   const formattedStartDate = start_date.split("T")[0]; // Extract 'YYYY-MM-DD'
-  const formattedEndDate = end_date.split("T")[0];     // Extract 'YYYY-MM-DD'
-
+  const formattedEndDate = end_date.split("T")[0];   // Extract 'YYYY-MM-DD'
+  console.log('Form Data:', formData); 
   const dataToSend = {
-    name,
-    code,
-    project,
-    description,
-    start_date: formattedStartDate,
-    end_date: formattedEndDate,
-    created_by,
+    name: formData.name,
+    code: formData.code,
+    project: formData.project,
+    description: formData.description,
+    start_date: formData.start_date,
+    end_date: formData.end_date,
+    created_by: formData.created_by,
+    rules: formData.rules || {},
+    jury: formData.jury || [],  // Ensure this is populated correctly
   };
+  console.log('Data to send:', dataToSend);  
 
   try {
-    const response = await post('/new-editathon', dataToSend);
+    const response = await fetch("http://localhost:5000/api/new-editathon", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataToSend),
+    });
 
-    if (response.status === 200 ) {
-      // alert("Data Saved Successfully!");
-      // Navigate to the contest page with the new ID
-      navigate(`/contest/${response.contest_id}`);
+    const result = await response.json();
+
+    if (response.status === 201) {
+      // Success: Navigate to the contest page
+      navigate(`/contest/${result.contest_id}`);
     } else {
-      // alert("Failed to save the data.");
-      navigate(`/contest/${response.contest_id}`);
+      // Handle errors
+      alert(result.error || "Failed to create the contest");
     }
   } catch (error) {
     console.error("Error saving data:", error);
