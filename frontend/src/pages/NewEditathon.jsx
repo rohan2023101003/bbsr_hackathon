@@ -139,7 +139,7 @@ const NewEditathon = () => {
       case 2:
         return <MarksSettings  formData={formData} setFormData={setFormData}/>;
       case 3:
-        return <JurySetting formData={formData} setFormData={setFormData} />;
+        return <JurySetting formData={formData} setFormData={setFormData} contestId={formData.id}  />;
       default:
         return null;
     }

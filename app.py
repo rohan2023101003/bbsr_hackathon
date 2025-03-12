@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_bcrypt import Bcrypt
 # Import the models from your models file
 from flask_migrate import Migrate
-from models import Contest, User, ContestMaintainer, ContestParticipant ,Submission , Session , association_table, db
+from models import Contest, User,Submission , Session , db
 from flask_cors import CORS
 
 # Initialize Flask app
@@ -195,7 +195,17 @@ def get_contests():
 
     # Process the contests to extract necessary data
     contests_data = [
-        {"id":contest.id,"name": contest.name, "start_date": contest.start_date, "end_date": contest.end_date , "judges": [judge.username for judge in contest.judges]}
+         {
+        "id": contest.id,
+        "name": contest.name,
+        "description": contest.description,
+        "start_date": contest.start_date,
+        "end_date": contest.end_date,
+        "created_by": contest.created_by,
+        "accept_points": contest.accept_points,
+        "reject_points": contest.reject_points,
+        "judges": [judge.username for judge in contest.judges],
+    }
         for contest in contests
     ]
 
@@ -286,24 +296,19 @@ def get_contest(contest_id):
         
         # Prepare contest details
         contest_data = {
-            "id": contest.id,
-            "name": contest.name,
-            "description": contest.description,
-            "created_by": contest.created_by,
-            "created_on": contest.created_on.isoformat(),
-            "start_date": contest.start_date.isoformat(),
-            "end_date": contest.end_date.isoformat(),
-            "is_active": contest.is_active,
-            "judges": [
-                {
-                    "username": judge.username,
-                    "email": judge.email,
-    
-                } for judge in contest.judges
-            ],
-            # "rules": contest.rules,
-             
-        }
+    "id": contest.id,
+    "name": contest.name,
+    "description": contest.description,
+    "created_by": contest.created_by,
+    "created_on": contest.created_on.isoformat(),
+    "start_date": contest.start_date.isoformat(),
+    "end_date": contest.end_date.isoformat(),
+    "is_active": contest.is_active,
+    "accept_points": contest.accept_points,
+    "reject_points": contest.reject_points,
+    "rules": contest.rules,  # Ensure `rules` is stored as a JSON field
+    "judges": [{"username": judge.username, "email": judge.email} for judge in contest.judges],
+}
         # Fetch the number of submissions by each user in the contest (grouped by user)
         submissions = db.session.query(
             Submission.user_username,

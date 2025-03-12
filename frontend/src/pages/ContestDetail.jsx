@@ -5,6 +5,7 @@ import { fetchContestById } from "../api/contest"; // Assuming this is the API f
 
 const ContestDetail = ({ userRole }) => {
   const { contestId } = useParams();
+  console.log("Contest ID:", contestId);
   const navigate = useNavigate();
 
   const [contestDetails, setContestDetails] = useState(null); // State to store contest details
@@ -21,7 +22,7 @@ const ContestDetail = ({ userRole }) => {
           name: data.name,
           description: data.description,
           rules: data.rules || "No rules provided", // You may need to handle undefined rules
-          jury: data.judges.map(judge => judge.username),
+          jury: data.jury || [],
           numArticles: data.submissions.reduce((sum, submission) => sum + submission.submission_count, 0), // Summing all submissions
           numParticipants: data.submissions.length,
           startDate: data.start_date,
@@ -66,16 +67,26 @@ const ContestDetail = ({ userRole }) => {
         <Typography variant="body1" paragraph>{contestDetails.description}</Typography>
 
         <Typography variant="h5" gutterBottom>Rules:</Typography>
-        <Typography variant="body2" paragraph>{contestDetails.rules}</Typography>
+        <Typography variant="body2" paragraph>
+  {typeof contestDetails.rules === "string"
+    ? contestDetails.rules
+    : `Rule Type: ${contestDetails.rules?.ruleType}, Optional: ${contestDetails.rules?.optional ? "Yes" : "No"}`}
+</Typography>
 
-        <Typography variant="h5" gutterBottom>Jury Members:</Typography>
-        <List>
-          {contestDetails.jury.map((juryMember, index) => (
-            <ListItem key={index}>
-              <ListItemText primary={juryMember} />
-            </ListItem>
-          ))}
-        </List>
+
+<Typography variant="h5" gutterBottom>Jury Members:</Typography>
+{contestDetails.jury.length > 0 ? (
+  <List>
+    {contestDetails.jury.map((juryMember, index) => (
+      <ListItem key={index}>
+        <ListItemText primary={juryMember} />
+      </ListItem>
+    ))}
+  </List>
+) : (
+  <Typography variant="body2">No jury members assigned.</Typography>
+)}
+
         <Typography variant="h5" gutterBottom>Project Type:</Typography>
         <Typography variant="body1">{contestDetails.project}</Typography>
 

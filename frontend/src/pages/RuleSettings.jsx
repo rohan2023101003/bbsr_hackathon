@@ -7,19 +7,29 @@ const RuleSettings = ({formData,setFormData}) => {
   const [user, setUser] = useState("21GauriGuptaa");
   const [article, setArticle] = useState("");
 
-  const handleOptionalChange = () => setIsOptional(!isOptional);
+  const handleOptionalChange = () => {
+    setIsOptional(!isOptional);
+    setFormData((prevData) => ({
+      ...prevData,
+      rules: {
+        ...(prevData.rules || {}), // Ensure rules is always defined
+        optional: !isOptional,
+      },
+    }));
+  };
   const handleShowClick = () => alert(`User: ${user}, Article: ${article}`);
 
   const handleRuleChange = (event) => {
-    setSelectedRule(event.target.value); 
-    setFormData({
-      ...formData,
+    const newRuleType = event.target.value;
+    setSelectedRule(newRuleType); 
+  
+    setFormData((prevData) => ({
+      ...prevData,
       rules: {
-        ...formData.rules,
-        ruleType: event.target.value, // Storing the selected rule
-        optional: isOptional,
+        ruleType: newRuleType,
+        optional: prevData.rules?.optional || false, // Preserve optional flag
       },
-    });
+    }));
   };
 
   return (
@@ -31,7 +41,11 @@ const RuleSettings = ({formData,setFormData}) => {
           <Box sx={styles.section}>
             <FormControl fullWidth variant="outlined" sx={styles.formControl}>
               <InputLabel>Select Rule</InputLabel>
-              <Select value={selectedRule} onChange={handleRuleChange} label="Select Rule">
+              <Select
+  value={formData.rules?.ruleType || ""}
+  onChange={handleRuleChange}
+  label="Select Rule"
+>
                 <MenuItem value="">Select a rule</MenuItem>
                 <MenuItem value="articleNamespace">Article Namespace</MenuItem>
                 <MenuItem value="userRole">User Role</MenuItem>
