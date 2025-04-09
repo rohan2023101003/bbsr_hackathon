@@ -23,8 +23,8 @@ const ContestDetail = ({ userRole }) => {
           description: data.description,
           rules: data.rules || "No rules provided", // You may need to handle undefined rules
           jury: Array.isArray(data.jury)
-    ? data.jury.map(j => typeof j === "string" ? j : j.username)
-    : [],
+          ? data.jury.map(j => typeof j === "string" ? j : j.username)
+          : [],
           numArticles: data.submissions.reduce((sum, submission) => sum + submission.submission_count, 0), // Summing all submissions
           numParticipants: data.submissions.length,
           startDate: data.start_date,
