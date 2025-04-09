@@ -22,7 +22,9 @@ const ContestDetail = ({ userRole }) => {
           name: data.name,
           description: data.description,
           rules: data.rules || "No rules provided", // You may need to handle undefined rules
-          jury: data.jury || [],
+          jury: Array.isArray(data.jury)
+    ? data.jury.map(j => typeof j === "string" ? j : j.username)
+    : [],
           numArticles: data.submissions.reduce((sum, submission) => sum + submission.submission_count, 0), // Summing all submissions
           numParticipants: data.submissions.length,
           startDate: data.start_date,
@@ -77,9 +79,9 @@ const ContestDetail = ({ userRole }) => {
 <Typography variant="h5" gutterBottom>Jury Members:</Typography>
 {contestDetails.jury.length > 0 ? (
   <List>
-    {contestDetails.jury.map((juryMember, index) => (
+    {contestDetails.jury.map((jury, index) => (
       <ListItem key={index}>
-        <ListItemText primary={juryMember} />
+        <ListItemText primary={jury} />
       </ListItem>
     ))}
   </List>

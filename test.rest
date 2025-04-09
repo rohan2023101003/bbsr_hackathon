@@ -29,7 +29,7 @@
 # Content-Type: application/json
 
 # {
-#     "judges": ["rohan_new"],
+#     "jury": ["rohan_new"],
 #     "accept_points": 10
 # }
 

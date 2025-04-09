@@ -12,7 +12,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # Correct database URI with the absolute path
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:\\Users\\Dell\\OneDrive\\Desktop\\BBSR HACKTHON\\bbsr_hackathon\\wikicontest.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:\\Users\\Dell\\OneDrive\\Desktop\\bbsr_hackathon\\bbsr_hackathon\\wikicontest.db"
 print(app.config["SQLALCHEMY_DATABASE_URI"])
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "qwertyuiop1234567890"
@@ -95,29 +95,30 @@ def create_contest():
             start_date = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M')
             end_date = datetime.strptime(data['end_date'], '%Y-%m-%dT%H:%M')
         # Fetch judge objects based on provided usernames
+        print(data)
         print(f"Project: {data.get('project')}")
         print(f"Code: {data.get('code')}")
         print(f"Rules: {data.get('rules')}")
         print(f"Jury: {data.get('jury')}")
 
         rules = data.get('rules', {})
-        judges = []
+        jury = []
         if 'jury' in data:
             for judge_username in data['jury']:  # Ensure 'jury' is being used correctly
                 judge = db.session.query(User).filter_by(username=judge_username).first()
                 
                 if judge:
                     # If the judge exists, add them
-                    judges.append(judge)
+                    jury.append(judge)
                 else:
                     # If the judge doesn't exist, create them automatically
                     print(f"Judge '{judge_username}' not found. Creating new judge...")
 
                     # You may want to assign a default email or other attributes to the new judge
-                    new_judge = User(username=judge_username, email=f"{judge_username}@example.com")
+                    new_judge = User(username=judge_username)
                     db.session.add(new_judge)
                     db.session.commit()  # Commit immediately to save the new judge
-                    judges.append(new_judge) 
+                    jury.append(new_judge) 
         
         accept_points = data.get('accept_points', 1)
         reject_points = data.get('reject_points', 0)
@@ -130,7 +131,7 @@ def create_contest():
             start_date=start_date,  
             end_date=end_date,
             created_on=datetime.today(),
-            judges=judges,
+            jury=jury,
             created_by=data['created_by'],
             rules=rules,
             accept_points=accept_points,
@@ -145,7 +146,7 @@ def create_contest():
         return jsonify({
             "message": "Contest created successfully",
             "contest_id": new_contest.id,
-            "jury": [judge.username for judge in new_contest.judges], 
+            "jury": [judge.username for judge in new_contest.jury], 
         }), 201
 
     except Exception as e:
@@ -204,7 +205,7 @@ def get_contests():
         "created_by": contest.created_by,
         "accept_points": contest.accept_points,
         "reject_points": contest.reject_points,
-        "judges": [judge.username for judge in contest.judges],
+        "jury": [judge.username for judge in contest.jury],
     }
         for contest in contests
     ]
@@ -292,7 +293,7 @@ def get_contest(contest_id):
         # Fetch the contest from the database by ID
         session = Session()
         contest = session.query(Contest).get(contest_id)
-                # Validate judges
+                # Validate jury
         
         # Prepare contest details
         contest_data = {
@@ -307,7 +308,7 @@ def get_contest(contest_id):
     "accept_points": contest.accept_points,
     "reject_points": contest.reject_points,
     "rules": contest.rules,  # Ensure `rules` is stored as a JSON field
-    "judges": [{"username": judge.username, "email": judge.email} for judge in contest.judges],
+    "jury": [{"username": judge.username} for judge in contest.jury],
 }
         # Fetch the number of submissions by each user in the contest (grouped by user)
         submissions = db.session.query(
@@ -383,13 +384,13 @@ def update_contest(contest_id):
                     else:
                         contest.rules[key] = value
 
-        # Handle `judges`: append new judges
-        if 'judges' in data:
-            existing_judges = {judge.username for judge in contest.judges}  # Assuming `username` is a field in User
-            new_judges = [judge for judge in data['judges'] if judge not in existing_judges]
-            # Query the User objects for new judges
-            judge_objects = db.session.query(User).filter(User.username.in_(new_judges)).all()
-            contest.judges.extend(judge_objects)
+        # Handle `jury`: append new jury
+        if 'jury' in data:
+            existing_jury = {judge.username for judge in contest.jury}  # Assuming `username` is a field in User
+            new_jury = [judge for judge in data['jury'] if judge not in existing_jury]
+            # Query the User objects for new jury
+            judge_objects = db.session.query(User).filter(User.username.in_(new_jury)).all()
+            contest.jury.extend(judge_objects)
 
         # Commit the changes to the database
         db.session.commit()

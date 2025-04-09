@@ -28,7 +28,7 @@ Base = declarative_base()
 
 # Association table for many-to-many relationships
 association_table = Table(
-    "contest_judges",
+    "contest_jury",
     Base.metadata,
     Column("contest_id", ForeignKey("contest.id")),
     Column("judge_username", ForeignKey("user.username")),
@@ -51,7 +51,7 @@ class Contest(Base):
     rules = Column(JSON, nullable=True)
     accept_points = Column(Integer, default=1)
     reject_points = Column(Integer, default=0)
-    judges = relationship(
+    jury = relationship(
         "User", secondary=association_table, back_populates="judged_contests"
     )
     submissions = relationship("Submission", back_populates="contest")
@@ -61,11 +61,11 @@ class User(Base):
     __tablename__ = "user"
 
     username = Column(String(190), primary_key=True, nullable=False)
-    email = Column(String(200), unique=True, nullable=False)
+    email = Column(String(200), unique=False, nullable=True)
     # last_login = Column(DateTime, default=datetime.utcnow)
 
     judged_contests = relationship(
-        "Contest", secondary=association_table, back_populates="judges"
+        "Contest", secondary=association_table, back_populates="jury"
     )
     submissions = relationship("Submission", back_populates="user")
 

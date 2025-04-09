@@ -3,37 +3,27 @@ import { TextField, Button, Box, Typography, List, ListItem, IconButton } from "
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 
-const JurySetting = () => {
-  const [juryMembers, setJuryMembers] = useState(() => {
-    const storedMembers = JSON.parse(localStorage.getItem("juryMembers"));
-    return storedMembers || [];
-  });
+const JurySetting = ({ formData, setFormData }) => {
   const [inputValue, setInputValue] = useState("");
-  const [minimumMarks, setMinimumMarks] = useState(1);
+  const [minimumMarks, setMinimumMarks] = useState(1); // optional field you can use in future
 
-  useEffect(() => {
-    localStorage.setItem("juryMembers", JSON.stringify(juryMembers));
-  }, [juryMembers]);
-
-  const addJuryMember = () => {
-    if (inputValue.trim().length < 3) {
-      alert("Username must be at least 3 characters long!");
-      return;
+  const addJury = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !formData.jury.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        jury: [...prev.jury, trimmed],
+      }));
     }
-
-    if (juryMembers.includes(inputValue.trim())) {
-      alert("This jury member is already added!");
-      return;
-    }
-
-    setJuryMembers([...juryMembers, inputValue.trim()]);
     setInputValue("");
   };
 
-  const removeJuryMember = (member) => {
-    setJuryMembers(juryMembers.filter((jury) => jury !== member));
+  const removeJury = (username) => {
+    setFormData((prev) => ({
+      ...prev,
+      jury: prev.jury.filter((j) => j !== username),
+    }));
   };
-
   return (
     <Box sx={styles.container}>
       <Typography variant="h4" gutterBottom>
@@ -53,7 +43,7 @@ const JurySetting = () => {
             sx={styles.input}
             fullWidth
           />
-          <Button variant="contained" color="primary" onClick={addJuryMember} sx={styles.addButton}>
+          <Button variant="contained" color="primary" onClick={addJury} sx={styles.addButton}>
             Add
           </Button>
         </Box>
@@ -63,28 +53,31 @@ const JurySetting = () => {
       <Box sx={styles.listContainer}>
         <Typography variant="h6">Jury Members:</Typography>
         <List sx={styles.list}>
-          {juryMembers.map((member) => (
-            <ListItem key={member} sx={styles.listItem}>
-              <Typography>{member}</Typography>
-              <IconButton
-                color="secondary"
-                onClick={() => removeJuryMember(member)}
-                sx={styles.removeButton}
-              >
-                <RemoveIcon />
-              </IconButton>
-            </ListItem>
-          ))}
+        {formData.jury.map((member, index) => {
+  const username = typeof member === "string" ? member : member.username;
+  return (
+    <ListItem key={username || index} sx={styles.listItem}>
+      <Typography>{username}</Typography>
+      <IconButton
+        color="secondary"
+        onClick={() => removeJury(username)}
+        sx={styles.removeButton}
+      >
+        <RemoveIcon />
+      </IconButton>
+    </ListItem>
+  );
+})}
         </List>
       </Box>
 
       {/* Total Jury Members and Clear Button */}
       <Box sx={styles.statsContainer}>
-        <Typography variant="body1">Total Jury Members: {juryMembers.length}</Typography>
+        <Typography variant="body1">Total Jury Members:{formData.jury.length}</Typography>
         <Button
           variant="outlined"
           color="secondary"
-          onClick={() => setJuryMembers([])}
+          onClick={() => setFormData((prev) => ({ ...prev, jury: [] }))}
           sx={styles.clearButton}
         >
           Clear All Jury Members

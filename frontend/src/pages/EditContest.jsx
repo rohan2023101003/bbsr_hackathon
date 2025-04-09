@@ -48,7 +48,7 @@ const EditContest = () => {
         startDate: contestData.start_date || "",
         endDate: contestData.end_date || "",
         created_by: contestData.created_by || "", // If you want this editable
-        jury: contestData.judges?.map((judge) => judge.username) || [], // If the judges are an array of objects, extract the username
+        jury: contestData.jury?.map((judge) => judge.username) || [], // If the jury are an array of objects, extract the username
       });
       } catch (error) {
         console.error("Error fetching contest details:", error);
@@ -68,7 +68,9 @@ const EditContest = () => {
   };
 
   const handleJuryChange = (index, event) => {
+    console.log("formData.jury", formData.jury);
     const newJury = [...formData.jury];
+
     newJury[index] = event.target.value;
     setFormData((prevData) => ({
       ...prevData,
@@ -162,12 +164,12 @@ const EditContest = () => {
         
         {/* Jury Members Section */}
         <Typography variant="h6" gutterBottom>Jury Members</Typography>
-        {formData.jury.map((juryMember, index) => (
-          <Box key={index} sx={styles.juryMemberContainer}>
+        {formData.jury.map((jury, index) => (
+          <Box key={index} sx={styles.juryContainer}>
             <TextField
               label={`Jury Member ${index + 1}`}
               name={`jury-${index}`}
-              value={juryMember}
+              value={jury}
               onChange={(event) => handleJuryChange(index, event)}
               fullWidth
               margin="normal"
@@ -218,7 +220,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
   },
-  juryMemberContainer: {
+  juryContainer: {
     display: "flex",
     alignItems: "center",
     marginBottom: "1rem",

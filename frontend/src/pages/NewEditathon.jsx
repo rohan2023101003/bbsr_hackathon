@@ -158,10 +158,10 @@ const handleSaveClick = async () => {
   console.log("Form Data before sending:", formData); 
   const { name, code, project, description, start_date, end_date, created_by } = formData;
 
-  if (!name || !code || !project || !start_date || !end_date) {
-    alert("Please fill in all required fields.");
-    return;
-  }
+  // if (!name || !code || !project || !start_date || !end_date) {
+  //   alert("Please fill in all required fields.");
+  //   return;
+  // }
 
   // Extract only the date part from start_date and end_date
   const formattedStartDate = start_date.split("T")[0]; // Extract 'YYYY-MM-DD'
